@@ -47,21 +47,29 @@ export async function createContract(input: CreateContractInput) {
       milestone_pool_cents: data.milestone_pool_cents,
       penalty_pool_cents: data.penalty_pool_cents,
       completion_pool_cents: data.completion_pool_cents,
+      weekly_reward_cents: data.weekly_reward_cents,
+      penalty_cents: data.penalty_cents,
+      milestone_interval_lbs: data.milestone_interval_lbs,
+      milestone_payout_cents: data.milestone_payout_cents,
+      milestone_bonus_interval_lbs: data.milestone_bonus_interval_lbs,
+      milestone_bonus_cents: data.milestone_bonus_cents,
     })
     .select()
     .single();
 
   if (contractError) return { error: contractError.message };
 
-  // Create milestones (every 5 lb)
+  // Create milestones based on contract's configured intervals
   const milestones = [];
-  for (let threshold = 5; threshold <= data.target_weight_loss; threshold += 5) {
-    const isBonus = threshold % 10 === 0;
+  const interval = data.milestone_interval_lbs;
+  const bonusInterval = data.milestone_bonus_interval_lbs;
+  for (let threshold = interval; threshold <= data.target_weight_loss; threshold += interval) {
+    const isBonus = threshold % bonusInterval === 0;
     milestones.push({
       contract_id: contract.id,
       threshold_lbs: threshold,
-      payout_cents: 2500,
-      bonus_payout_cents: isBonus ? 2500 : 0,
+      payout_cents: data.milestone_payout_cents,
+      bonus_payout_cents: isBonus ? data.milestone_bonus_cents : 0,
       status: "pending",
     });
   }

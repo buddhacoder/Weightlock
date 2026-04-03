@@ -33,6 +33,13 @@ export const createContractSchema = z.object({
   milestone_pool_cents: z.number().int().min(0).default(20000),
   penalty_pool_cents: z.number().int().min(0).default(8000),
   completion_pool_cents: z.number().int().min(0).default(24000),
+  // Per-event payout rules
+  weekly_reward_cents: z.number().int().min(0).default(3000),
+  penalty_cents: z.number().int().min(0).default(500),
+  milestone_interval_lbs: z.number().min(1).max(50).default(5),
+  milestone_payout_cents: z.number().int().min(0).default(2500),
+  milestone_bonus_interval_lbs: z.number().min(1).max(100).default(10),
+  milestone_bonus_cents: z.number().int().min(0).default(2500),
 });
 
 export const submitWeighInSchema = z.object({

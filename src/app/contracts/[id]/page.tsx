@@ -170,7 +170,7 @@ export default async function ContractDetailPage({
                 At Risk This Week
               </div>
               <p className="text-2xl font-bold text-red-600">
-                {formatCents(Math.min(3000, pools.weekly_pool.remaining))}
+                {formatCents(Math.min(c.weekly_reward_cents, pools.weekly_pool.remaining))}
               </p>
               <p className="text-xs text-slate-500">
                 {formatCents(pools.total_remaining)} total locked

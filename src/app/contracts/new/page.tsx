@@ -9,12 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createContract } from "@/lib/actions/contracts";
 import { formatCents } from "@/lib/utils";
-import { DollarSign, ArrowRight, AlertTriangle } from "lucide-react";
+import { DollarSign, ArrowRight, AlertTriangle, Settings2 } from "lucide-react";
 
 const DEFAULT_DEPOSIT = 100000; // $1000
 
 function computeDefaults(totalCents: number) {
-  // Proportional allocation matching the default ratios
   const weeklyPct = 0.48;
   const milestonePct = 0.20;
   const penaltyPct = 0.08;
@@ -32,6 +31,7 @@ export default function NewContractPage() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const [form, setForm] = useState({
     start_weight: 220,
@@ -41,6 +41,13 @@ export default function NewContractPage() {
     referee_email: "",
     total_deposit_cents: DEFAULT_DEPOSIT,
     ...computeDefaults(DEFAULT_DEPOSIT),
+    // Payout rules (configurable)
+    weekly_reward_cents: 3000,
+    penalty_cents: 500,
+    milestone_interval_lbs: 5,
+    milestone_payout_cents: 2500,
+    milestone_bonus_interval_lbs: 10,
+    milestone_bonus_cents: 2500,
   });
 
   function updateField(field: string, value: number | string) {
@@ -156,7 +163,7 @@ export default function NewContractPage() {
                 <DollarSign className="h-5 w-5 text-emerald-600" />
                 Funding Structure
               </CardTitle>
-              <CardDescription>Configure your deposit and pool allocations</CardDescription>
+              <CardDescription>Configure your deposit and how money moves</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -179,7 +186,7 @@ export default function NewContractPage() {
                 <h4 className="font-medium text-sm text-slate-700">Pool Allocation</h4>
                 {[
                   { key: "weekly_pool_cents", label: "Weekly Compliance Pool", desc: "Released to referee for each compliant week" },
-                  { key: "milestone_pool_cents", label: "Milestone Pool", desc: "Released at every 5 lb milestone" },
+                  { key: "milestone_pool_cents", label: "Milestone Pool", desc: "Released at milestone thresholds" },
                   { key: "penalty_pool_cents", label: "Penalty Pool", desc: "Released to referee for noncompliant weeks" },
                   { key: "completion_pool_cents", label: "Completion Pool", desc: "Released when full goal is achieved" },
                 ].map((pool) => (
@@ -211,6 +218,152 @@ export default function NewContractPage() {
                       Pools total {formatCents(poolSum)} but deposit is{" "}
                       {formatCents(form.total_deposit_cents)}. They must match.
                     </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Payout Rules */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                  className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 cursor-pointer"
+                >
+                  <Settings2 className="h-4 w-4" />
+                  {showAdvanced ? "Hide" : "Customize"} payout rules
+                </button>
+
+                {showAdvanced && (
+                  <div className="border rounded-lg p-4 mt-3 space-y-3">
+                    <h4 className="font-medium text-sm text-slate-700">Payout Rules</h4>
+                    <p className="text-xs text-slate-500">
+                      These control how much is released for each event. Defaults work well for a $1,000 / 16-week contract.
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-xs">Weekly reward</Label>
+                        <div className="relative">
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
+                          <Input
+                            type="number"
+                            className="h-8 text-sm pl-5"
+                            value={form.weekly_reward_cents / 100}
+                            onChange={(e) =>
+                              setForm((prev) => ({
+                                ...prev,
+                                weekly_reward_cents: Math.round(Number(e.target.value) * 100),
+                              }))
+                            }
+                          />
+                        </div>
+                        <p className="text-xs text-slate-400">Per compliant week</p>
+                      </div>
+                      <div>
+                        <Label className="text-xs">Penalty amount</Label>
+                        <div className="relative">
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
+                          <Input
+                            type="number"
+                            className="h-8 text-sm pl-5"
+                            value={form.penalty_cents / 100}
+                            onChange={(e) =>
+                              setForm((prev) => ({
+                                ...prev,
+                                penalty_cents: Math.round(Number(e.target.value) * 100),
+                              }))
+                            }
+                          />
+                        </div>
+                        <p className="text-xs text-slate-400">Per noncompliant week</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-xs">Milestone every</Label>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            className="h-8 text-sm pr-8"
+                            value={form.milestone_interval_lbs}
+                            onChange={(e) =>
+                              setForm((prev) => ({
+                                ...prev,
+                                milestone_interval_lbs: Number(e.target.value),
+                              }))
+                            }
+                          />
+                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">lb</span>
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-xs">Milestone payout</Label>
+                        <div className="relative">
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
+                          <Input
+                            type="number"
+                            className="h-8 text-sm pl-5"
+                            value={form.milestone_payout_cents / 100}
+                            onChange={(e) =>
+                              setForm((prev) => ({
+                                ...prev,
+                                milestone_payout_cents: Math.round(Number(e.target.value) * 100),
+                              }))
+                            }
+                          />
+                        </div>
+                        <p className="text-xs text-slate-400">Per milestone hit</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-xs">Bonus every</Label>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            className="h-8 text-sm pr-8"
+                            value={form.milestone_bonus_interval_lbs}
+                            onChange={(e) =>
+                              setForm((prev) => ({
+                                ...prev,
+                                milestone_bonus_interval_lbs: Number(e.target.value),
+                              }))
+                            }
+                          />
+                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">lb</span>
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-xs">Bonus amount</Label>
+                        <div className="relative">
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
+                          <Input
+                            type="number"
+                            className="h-8 text-sm pl-5"
+                            value={form.milestone_bonus_cents / 100}
+                            onChange={(e) =>
+                              setForm((prev) => ({
+                                ...prev,
+                                milestone_bonus_cents: Math.round(Number(e.target.value) * 100),
+                              }))
+                            }
+                          />
+                        </div>
+                        <p className="text-xs text-slate-400">Extra at bonus intervals</p>
+                      </div>
+                    </div>
+
+                    {/* Summary */}
+                    <div className="bg-slate-50 rounded p-3 text-xs text-slate-600 space-y-1">
+                      <p>With these settings:</p>
+                      <p>- Compliant week: referee earns {formatCents(form.weekly_reward_cents)}</p>
+                      <p>- Missed week: referee earns {formatCents(form.penalty_cents)} penalty</p>
+                      <p>- Every {form.milestone_interval_lbs} lb lost: {formatCents(form.milestone_payout_cents)} payout</p>
+                      <p>- Every {form.milestone_bonus_interval_lbs} lb lost: extra {formatCents(form.milestone_bonus_cents)} bonus</p>
+                      <p>- Goal reached: {formatCents(form.completion_pool_cents)} completion bonus</p>
+                    </div>
                   </div>
                 )}
               </div>

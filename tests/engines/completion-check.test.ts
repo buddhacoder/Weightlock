@@ -18,6 +18,12 @@ function makeContract(overrides?: Partial<Contract>): Contract {
     milestone_pool_cents: 20000,
     penalty_pool_cents: 8000,
     completion_pool_cents: 24000,
+    weekly_reward_cents: 3000,
+    penalty_cents: 500,
+    milestone_interval_lbs: 5,
+    milestone_payout_cents: 2500,
+    milestone_bonus_interval_lbs: 10,
+    milestone_bonus_cents: 2500,
     start_date: "2025-01-06",
     end_date: "2025-04-28",
     created_at: "2025-01-06T00:00:00Z",
@@ -72,5 +78,16 @@ describe("checkCompletion", () => {
 
     expect(result.isComplete).toBe(false);
     expect(result.completionPayoutCents).toBe(0);
+  });
+
+  it("uses custom completion pool from contract", () => {
+    const contract = makeContract({ completion_pool_cents: 50000 });
+    const result = checkCompletion({
+      contract,
+      lowestVerifiedWeight: 180,
+    });
+
+    expect(result.isComplete).toBe(true);
+    expect(result.completionPayoutCents).toBe(50000);
   });
 });

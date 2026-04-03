@@ -22,6 +22,12 @@ function makeContract(overrides?: Partial<Contract>): Contract {
     milestone_pool_cents: 20000,
     penalty_pool_cents: 8000,
     completion_pool_cents: 24000,
+    weekly_reward_cents: 3000,
+    penalty_cents: 500,
+    milestone_interval_lbs: 5,
+    milestone_payout_cents: 2500,
+    milestone_bonus_interval_lbs: 10,
+    milestone_bonus_cents: 2500,
     start_date: "2025-01-06",
     end_date: "2025-04-28",
     created_at: "2025-01-06T00:00:00Z",
@@ -132,8 +138,32 @@ describe("detectMilestones", () => {
     });
 
     expect(result).toHaveLength(2);
-    // Should not include milestones beyond 10
     expect(result.every((m) => m.thresholdLbs <= 10)).toBe(true);
+  });
+
+  it("uses custom milestone interval from contract", () => {
+    const contract = makeContract({
+      milestone_interval_lbs: 3,
+      milestone_payout_cents: 1500,
+      milestone_bonus_interval_lbs: 9,
+      milestone_bonus_cents: 3000,
+    });
+    const milestones: Milestone[] = [];
+
+    const result = detectMilestones({
+      contract,
+      milestones,
+      lowestVerifiedWeight: 210, // 10 lb lost
+    });
+
+    // With interval 3: milestones at 3, 6, 9
+    expect(result).toHaveLength(3);
+    expect(result[0].thresholdLbs).toBe(3);
+    expect(result[0].payoutCents).toBe(1500);
+    expect(result[0].bonusPayoutCents).toBe(0);
+    // 9 is a bonus interval
+    expect(result[2].thresholdLbs).toBe(9);
+    expect(result[2].bonusPayoutCents).toBe(3000);
   });
 });
 

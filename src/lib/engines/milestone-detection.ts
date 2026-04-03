@@ -13,32 +13,32 @@ export interface MilestoneTriggered {
   isBonus: boolean;
 }
 
-const MILESTONE_PAYOUT_CENTS = 2500; // $25 per 5 lb
-const MILESTONE_BONUS_CENTS = 2500; // extra $25 at 10 lb intervals
-
 export function detectMilestones(input: MilestoneCheckInput): MilestoneTriggered[] {
   const { contract, milestones, lowestVerifiedWeight } = input;
   const weightLost = contract.start_weight - lowestVerifiedWeight;
   const triggered: MilestoneTriggered[] = [];
 
-  // Generate all possible thresholds (every 5 lb up to target)
+  const interval = contract.milestone_interval_lbs;
+  const bonusInterval = contract.milestone_bonus_interval_lbs;
+
+  // Generate all possible thresholds based on the contract's milestone interval
   const maxThreshold = Math.min(
-    Math.floor(weightLost / 5) * 5,
+    Math.floor(weightLost / interval) * interval,
     contract.target_weight_loss
   );
 
-  for (let threshold = 5; threshold <= maxThreshold; threshold += 5) {
+  for (let threshold = interval; threshold <= maxThreshold; threshold += interval) {
     // Check if this milestone already exists and is triggered
     const existing = milestones.find((m) => m.threshold_lbs === threshold);
     if (existing && existing.status !== "pending") {
       continue; // Already triggered, idempotent skip
     }
 
-    const isBonus = threshold % 10 === 0;
+    const isBonus = threshold % bonusInterval === 0;
     triggered.push({
       thresholdLbs: threshold,
-      payoutCents: MILESTONE_PAYOUT_CENTS,
-      bonusPayoutCents: isBonus ? MILESTONE_BONUS_CENTS : 0,
+      payoutCents: contract.milestone_payout_cents,
+      bonusPayoutCents: isBonus ? contract.milestone_bonus_cents : 0,
       isBonus,
     });
   }

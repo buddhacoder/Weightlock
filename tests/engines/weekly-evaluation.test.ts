@@ -22,6 +22,12 @@ function makeContract(overrides?: Partial<Contract>): Contract {
     milestone_pool_cents: 20000,
     penalty_pool_cents: 8000,
     completion_pool_cents: 24000,
+    weekly_reward_cents: 3000,
+    penalty_cents: 500,
+    milestone_interval_lbs: 5,
+    milestone_payout_cents: 2500,
+    milestone_bonus_interval_lbs: 10,
+    milestone_bonus_cents: 2500,
     start_date: "2025-01-06",
     end_date: "2025-04-28",
     created_at: "2025-01-06T00:00:00Z",
@@ -89,6 +95,33 @@ describe("evaluateWeek", () => {
 
     expect(result.outcome).toBe("noncompliant");
     expect(result.payoutCents).toBe(500);
+  });
+
+  it("uses custom payout amounts from contract config", () => {
+    const customContract = makeContract({
+      weekly_reward_cents: 5000,
+      penalty_cents: 1000,
+    });
+
+    const compliant = evaluateWeek({
+      contract: customContract,
+      weekNumber: 1,
+      weekStart,
+      weekEnd,
+      verifiedWeighInCount: 3,
+    });
+
+    expect(compliant.payoutCents).toBe(5000);
+
+    const noncompliant = evaluateWeek({
+      contract: customContract,
+      weekNumber: 1,
+      weekStart,
+      weekEnd,
+      verifiedWeighInCount: 1,
+    });
+
+    expect(noncompliant.payoutCents).toBe(1000);
   });
 });
 

@@ -67,6 +67,12 @@ export interface Contract {
   milestone_pool_cents: number;
   penalty_pool_cents: number;
   completion_pool_cents: number;
+  weekly_reward_cents: number;
+  penalty_cents: number;
+  milestone_interval_lbs: number;
+  milestone_payout_cents: number;
+  milestone_bonus_interval_lbs: number;
+  milestone_bonus_cents: number;
   start_date: string | null;
   end_date: string | null;
   created_at: string;
