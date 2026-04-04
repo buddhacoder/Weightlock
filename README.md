@@ -18,10 +18,25 @@ Both sides have skin in the game. Real stakes. Real accountability.
 
 ## Architecture
 
+Two frontends, one backend:
+
 ```
-Next.js 15+ (App Router)
-├── Frontend: React, TypeScript, Tailwind CSS, shadcn/ui, Recharts
-├── Backend: Server Actions, API Route Handlers
+mobile/                          (React Native / Expo)
+├── Participant-focused mobile app
+├── Camera integration for scale photos
+├── Push notifications for weigh-in reminders
+├── Secure token storage
+└── Same Supabase backend
+
+src/                             (Next.js 15 / Web)
+├── Marketing landing page
+├── Referee verification portal
+├── Admin/dashboard web access
+├── Stripe checkout flows
+├── Cron jobs for automated evaluation
+└── Same Supabase backend
+
+Shared Backend:
 ├── Database: Supabase (Postgres + Auth + Storage + RLS)
 ├── Payments: Stripe (Checkout + Connect + Webhooks)
 ├── Email: Resend
@@ -57,6 +72,41 @@ supabase/
 
 tests/                      # Vitest test suite
 scripts/                    # Seed data
+
+mobile/                     # React Native (Expo) app
+├── app/                    # Expo Router screens
+│   ├── login.tsx           # Magic link auth
+│   ├── dashboard.tsx       # Contract list
+│   ├── contract/new.tsx    # Contract creation
+│   ├── contract/[id]/      # Detail, weigh-in, wallet, history
+│   └── referee.tsx         # Verification panel
+├── lib/                    # Supabase client, auth context, utils
+├── components/             # Shared components
+└── constants/              # Theme tokens
+```
+
+## Mobile App (React Native / Expo)
+
+The mobile app is the primary interface for participants. It provides:
+
+- **Magic link auth** with secure token storage via Expo SecureStore
+- **Dashboard** with pull-to-refresh showing all contracts
+- **Contract creation** with 2-step wizard (goal + funding)
+- **Weigh-in screen** with camera integration for scale photos
+- **Contract detail** with progress, milestones, and quick actions
+- **Wallet** with pool breakdowns and transaction history
+- **Timeline history** of all contract events
+- **Referee panel** for approving/rejecting weigh-ins
+- **Push notifications** for weigh-in reminders (Expo Notifications)
+
+### Running the mobile app
+
+```bash
+cd mobile
+cp .env.example .env
+# Fill in your Supabase URL and anon key
+npm start
+# Scan QR code with Expo Go on your phone
 ```
 
 ## Local Setup
