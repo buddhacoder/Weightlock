@@ -1,0 +1,30 @@
+export const Colors = {
+  primary: '#111827',
+  primaryForeground: '#F9FAFB',
+  emerald: '#059669',
+  emeraldLight: '#D1FAE5',
+  emeraldDark: '#047857',
+  red: '#DC2626',
+  redLight: '#FEE2E2',
+  amber: '#D97706',
+  amberLight: '#FEF3C7',
+  purple: '#7C3AED',
+  blue: '#2563EB',
+  background: '#F8FAFC',
+  card: '#FFFFFF',
+  border: '#E2E8F0',
+  text: '#0F172A',
+  textSecondary: '#64748B',
+  textMuted: '#94A3B8',
+  skeleton: '#E2E8F0',
+};
+
+export const Spacing = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  xxl: 24,
+  xxxl: 32,
+};

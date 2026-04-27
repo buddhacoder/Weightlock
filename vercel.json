@@ -1,0 +1,39 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/weekly-evaluation",
+      "schedule": "0 6 * * 1"
+    },
+    {
+      "path": "/api/cron/milestone-detection",
+      "schedule": "0 */4 * * *"
+    },
+    {
+      "path": "/api/cron/completion-check",
+      "schedule": "0 */4 * * *"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ]
+}
