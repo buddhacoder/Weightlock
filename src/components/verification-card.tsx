@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { verifyWeighIn } from "@/lib/actions/weigh-ins";
+import { verifyWeighIn, getWeighInPhotoUrl } from "@/lib/actions/weigh-ins";
 import type { WeighIn } from "@/types/database";
-import { Check, X, Scale, User } from "lucide-react";
+import { Check, X, Scale, User, ImageIcon } from "lucide-react";
 
 interface VerificationCardProps {
   weighIn: WeighIn & { participant_name?: string; participant_email?: string; start_weight?: number };
@@ -20,6 +20,15 @@ export function VerificationCard({ weighIn, participantName }: VerificationCardP
   const [showReject, setShowReject] = useState(false);
   const [done, setDone] = useState(false);
   const [result, setResult] = useState<"approved" | "rejected" | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (weighIn.photo_path) {
+      getWeighInPhotoUrl(weighIn.photo_path).then((res) => {
+        if (res.url) setPhotoUrl(res.url);
+      });
+    }
+  }, [weighIn.photo_path]);
 
   async function handleVerify(status: "approved" | "rejected") {
     setLoading(true);
@@ -70,6 +79,24 @@ export function VerificationCard({ weighIn, participantName }: VerificationCardP
 
         {weighIn.note && (
           <p className="text-sm text-slate-600 bg-slate-50 rounded p-2">{weighIn.note}</p>
+        )}
+
+        {weighIn.photo_path && (
+          <div className="rounded-lg overflow-hidden border border-slate-200">
+            {photoUrl ? (
+              <a href={photoUrl} target="_blank" rel="noopener noreferrer">
+                <img
+                  src={photoUrl}
+                  alt="Scale photo"
+                  className="w-full h-40 object-cover hover:opacity-90 transition-opacity"
+                />
+              </a>
+            ) : (
+              <div className="w-full h-40 bg-slate-50 flex items-center justify-center">
+                <ImageIcon className="h-6 w-6 text-slate-300 animate-pulse" />
+              </div>
+            )}
+          </div>
         )}
 
         {showReject ? (

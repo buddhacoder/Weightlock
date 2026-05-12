@@ -65,15 +65,16 @@ export default function WeighInScreen() {
 
     // Upload photo if taken
     if (photo) {
-      const ext = photo.split(".").pop() || "jpg";
+      const ext = photo.split(".").pop()?.toLowerCase() || "jpg";
+      const contentType = ext === "png" ? "image/png" : "image/jpeg";
       const fileName = `${user.id}/${id}/${Date.now()}.${ext}`;
 
       const response = await fetch(photo);
-      const blob = await response.blob();
+      const arrayBuffer = await response.arrayBuffer();
 
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from("weighin-photos")
-        .upload(fileName, blob, { contentType: `image/${ext}` });
+        .upload(fileName, arrayBuffer, { contentType });
 
       if (uploadError) {
         console.warn("Photo upload failed:", uploadError.message);

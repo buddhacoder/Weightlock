@@ -8,6 +8,7 @@ import {
   StyleSheet,
   RefreshControl,
   Alert,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,6 +25,7 @@ export default function RefereeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
 
   const loadData = useCallback(async () => {
     if (!user) return;
@@ -49,6 +51,20 @@ export default function RefereeScreen() {
       .order("submitted_at", { ascending: false });
 
     setPendingWeighIns(pending || []);
+
+    // Fetch signed URLs for weigh-in photos
+    const urls: Record<string, string> = {};
+    for (const wi of pending || []) {
+      if (wi.photo_path) {
+        const { data } = await supabase.storage
+          .from("weighin-photos")
+          .createSignedUrl(wi.photo_path, 60 * 60);
+        if (data?.signedUrl) {
+          urls[wi.id] = data.signedUrl;
+        }
+      }
+    }
+    setPhotoUrls(urls);
 
     // Get earnings
     const { data: ledger } = await supabase
@@ -168,6 +184,14 @@ export default function RefereeScreen() {
                   <Text style={styles.verifyNote}>{wi.note}</Text>
                 )}
 
+                {photoUrls[wi.id] && (
+                  <Image
+                    source={{ uri: photoUrls[wi.id] }}
+                    style={styles.verifyPhoto}
+                    resizeMode="cover"
+                  />
+                )}
+
                 {rejectingId === wi.id ? (
                   <View style={styles.rejectSection}>
                     <TextInput
@@ -250,6 +274,9 @@ const styles = StyleSheet.create({
   verifyNote: {
     fontSize: 13, color: Colors.textSecondary, backgroundColor: Colors.background,
     borderRadius: 8, padding: Spacing.md, marginTop: Spacing.md,
+  },
+  verifyPhoto: {
+    width: "100%", height: 160, borderRadius: 10, marginTop: Spacing.md,
   },
   verifyActions: { flexDirection: "row", gap: Spacing.md, marginTop: Spacing.lg },
   approveButton: {

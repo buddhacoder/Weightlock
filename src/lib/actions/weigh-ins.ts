@@ -200,6 +200,22 @@ export async function getPendingWeighIns() {
   return data || [];
 }
 
+export async function getWeighInPhotoUrl(photoPath: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Not authenticated" };
+
+  const { data, error } = await supabase.storage
+    .from("weighin-photos")
+    .createSignedUrl(photoPath, 60 * 60); // 1 hour expiry
+
+  if (error) return { error: error.message };
+  return { url: data.signedUrl };
+}
+
 export async function uploadWeighInPhoto(contractId: string, file: File) {
   const supabase = await createClient();
   const {
