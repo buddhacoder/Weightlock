@@ -73,6 +73,7 @@ export interface Contract {
   milestone_payout_cents: number;
   milestone_bonus_interval_lbs: number;
   milestone_bonus_cents: number;
+  timezone: string;
   start_date: string | null;
   end_date: string | null;
   created_at: string;

@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     const now = new Date();
     const startDate = new Date(contract.start_date);
-    const currentWeek = getCurrentWeekNumber(startDate, now);
+    const currentWeek = getCurrentWeekNumber(startDate, now, contract.timezone);
 
     // Evaluate the previous week (we evaluate at the start of the new week)
     const evaluateWeekNum = currentWeek - 1;
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       continue;
     }
 
-    const { weekStart, weekEnd } = getContractWeekBounds(startDate, evaluateWeekNum);
+    const { weekStart, weekEnd } = getContractWeekBounds(startDate, evaluateWeekNum, contract.timezone);
 
     // Count verified weigh-ins for this week
     const { data: verifiedWeighIns } = await supabase

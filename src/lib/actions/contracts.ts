@@ -53,6 +53,7 @@ export async function createContract(input: CreateContractInput) {
       milestone_payout_cents: data.milestone_payout_cents,
       milestone_bonus_interval_lbs: data.milestone_bonus_interval_lbs,
       milestone_bonus_cents: data.milestone_bonus_cents,
+      timezone: data.timezone,
     })
     .select()
     .single();

@@ -15,6 +15,19 @@ import { useAuth } from "@/lib/auth-context";
 import { formatCents } from "@/lib/utils";
 import { Colors, Spacing } from "@/constants/theme";
 
+const US_TIMEZONES = [
+  { value: "America/New_York", label: "Eastern (ET)" },
+  { value: "America/Chicago", label: "Central (CT)" },
+  { value: "America/Denver", label: "Mountain (MT)" },
+  { value: "America/Los_Angeles", label: "Pacific (PT)" },
+  { value: "America/Anchorage", label: "Alaska (AKT)" },
+  { value: "Pacific/Honolulu", label: "Hawaii (HT)" },
+  { value: "America/Phoenix", label: "Arizona (MST)" },
+  { value: "America/Detroit", label: "Detroit (ET)" },
+  { value: "America/Indiana/Indianapolis", label: "Indiana (ET)" },
+  { value: "America/Boise", label: "Boise (MT)" },
+];
+
 export default function NewContractScreen() {
   const router = useRouter();
   const { user } = useAuth();
@@ -27,6 +40,7 @@ export default function NewContractScreen() {
     target_duration_weeks: "16",
     weigh_ins_per_week: "3",
     referee_email: "",
+    timezone: "America/New_York",
     total_deposit_cents: 100000,
     weekly_pool_cents: 48000,
     milestone_pool_cents: 20000,
@@ -69,6 +83,7 @@ export default function NewContractScreen() {
         milestone_payout_cents: form.milestone_payout_cents,
         milestone_bonus_interval_lbs: form.milestone_bonus_interval_lbs,
         milestone_bonus_cents: form.milestone_bonus_cents,
+        timezone: form.timezone,
       })
       .select()
       .single();
@@ -179,6 +194,29 @@ export default function NewContractScreen() {
               placeholder="referee@example.com"
               placeholderTextColor={Colors.textMuted}
             />
+
+            <Text style={styles.label}>Your Timezone</Text>
+            <View style={styles.timezoneContainer}>
+              {US_TIMEZONES.map((tz) => (
+                <TouchableOpacity
+                  key={tz.value}
+                  style={[
+                    styles.timezoneOption,
+                    form.timezone === tz.value && styles.timezoneOptionSelected,
+                  ]}
+                  onPress={() => setForm((prev) => ({ ...prev, timezone: tz.value }))}
+                >
+                  <Text
+                    style={[
+                      styles.timezoneOptionText,
+                      form.timezone === tz.value && styles.timezoneOptionTextSelected,
+                    ]}
+                  >
+                    {tz.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
 
             <View style={styles.summaryBox}>
               <Text style={styles.summaryText}>
@@ -353,4 +391,30 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.card,
   },
   secondaryButtonText: { fontSize: 16, fontWeight: "500", color: Colors.text },
+  timezoneContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: Spacing.lg,
+  },
+  timezoneOption: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.card,
+  },
+  timezoneOptionSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primary,
+  },
+  timezoneOptionText: {
+    fontSize: 13,
+    color: Colors.text,
+  },
+  timezoneOptionTextSelected: {
+    color: Colors.primaryForeground,
+    fontWeight: "600",
+  },
 });

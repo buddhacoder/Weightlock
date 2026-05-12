@@ -13,6 +13,19 @@ import { DollarSign, ArrowRight, AlertTriangle, Settings2 } from "lucide-react";
 
 const DEFAULT_DEPOSIT = 100000; // $1000
 
+const US_TIMEZONES = [
+  { value: "America/New_York", label: "Eastern (ET)" },
+  { value: "America/Chicago", label: "Central (CT)" },
+  { value: "America/Denver", label: "Mountain (MT)" },
+  { value: "America/Los_Angeles", label: "Pacific (PT)" },
+  { value: "America/Anchorage", label: "Alaska (AKT)" },
+  { value: "Pacific/Honolulu", label: "Hawaii (HT)" },
+  { value: "America/Phoenix", label: "Arizona (MST)" },
+  { value: "America/Detroit", label: "Detroit (ET)" },
+  { value: "America/Indiana/Indianapolis", label: "Indiana (ET)" },
+  { value: "America/Boise", label: "Boise (MT)" },
+] as const;
+
 function computeDefaults(totalCents: number) {
   const weeklyPct = 0.48;
   const milestonePct = 0.20;
@@ -39,6 +52,7 @@ export default function NewContractPage() {
     target_duration_weeks: 16,
     weigh_ins_per_week: 3,
     referee_email: "",
+    timezone: "America/New_York",
     total_deposit_cents: DEFAULT_DEPOSIT,
     ...computeDefaults(DEFAULT_DEPOSIT),
     // Payout rules (configurable)
@@ -138,6 +152,23 @@ export default function NewContractPage() {
                 />
                 <p className="text-xs text-slate-500 mt-1">
                   Your referee will be invited to verify your weigh-ins and earn rewards.
+                </p>
+              </div>
+              <div>
+                <Label>Your Timezone</Label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  value={form.timezone}
+                  onChange={(e) => updateField("timezone", e.target.value)}
+                >
+                  {US_TIMEZONES.map((tz) => (
+                    <option key={tz.value} value={tz.value}>
+                      {tz.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-slate-500 mt-1">
+                  Weekly evaluations will use this timezone for week boundaries.
                 </p>
               </div>
               <div className="bg-slate-50 rounded-lg p-4">

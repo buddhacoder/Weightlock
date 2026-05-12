@@ -24,6 +24,7 @@ function makeContract(overrides?: Partial<Contract>): Contract {
     milestone_payout_cents: 2500,
     milestone_bonus_interval_lbs: 10,
     milestone_bonus_cents: 2500,
+    timezone: "America/New_York",
     start_date: "2025-01-06",
     end_date: "2025-04-28",
     created_at: "2025-01-06T00:00:00Z",

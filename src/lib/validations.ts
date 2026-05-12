@@ -40,6 +40,7 @@ export const createContractSchema = z.object({
   milestone_payout_cents: z.number().int().min(0).default(2500),
   milestone_bonus_interval_lbs: z.number().min(1).max(100).default(10),
   milestone_bonus_cents: z.number().int().min(0).default(2500),
+  timezone: z.string().default("America/New_York"),
 });
 
 export const submitWeighInSchema = z.object({
