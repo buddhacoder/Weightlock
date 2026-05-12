@@ -8,6 +8,12 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "scheme": "weightlock",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/your-project-id"
+    },
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
