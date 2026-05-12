@@ -77,6 +77,12 @@ export default function DashboardScreen() {
           >
             <Ionicons name="people-outline" size={22} color={Colors.text} />
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => router.push("/settings")}
+          >
+            <Ionicons name="settings-outline" size={22} color={Colors.text} />
+          </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton} onPress={signOut}>
             <Ionicons name="log-out-outline" size={22} color={Colors.textSecondary} />
           </TouchableOpacity>
