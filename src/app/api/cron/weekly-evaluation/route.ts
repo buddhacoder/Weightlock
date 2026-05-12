@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { evaluateWeek, getContractWeekBounds, getCurrentWeekNumber } from "@/lib/engines/weekly-evaluation";
 import { computePoolBalances } from "@/lib/engines/pool-tracker";
 import { sendNotification } from "@/lib/notifications";
+import { sendPushNotification } from "@/lib/push";
 import type { Contract, LedgerEntry } from "@/types/database";
 
 export async function GET(request: NextRequest) {
@@ -116,7 +117,18 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Notify
+    // Push notification to participant
+    const payoutDollars = (actualPayout / 100).toFixed(2);
+    await sendPushNotification(contract.participant_id, {
+      title: `Week ${evaluateWeekNum} evaluated`,
+      body:
+        evaluation.outcome === "compliant"
+          ? `Great job! You were compliant this week.`
+          : `You missed weigh-ins this week. $${payoutDollars} penalty applied.`,
+      data: { contractId: contract.id, weekNumber: evaluateWeekNum, outcome: evaluation.outcome },
+    }).catch(console.error);
+
+    // Notify referee via email
     if (contract.referee_id) {
       const { data: refereeProfile } = await supabase
         .from("profiles")

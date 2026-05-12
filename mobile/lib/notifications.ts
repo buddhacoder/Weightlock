@@ -44,17 +44,20 @@ export async function registerForPushNotifications(): Promise<string | null> {
 }
 
 export async function savePushToken(userId: string, token: string) {
-  // Store the push token in the user's profile metadata
-  // In production, you'd have a dedicated push_tokens table
-  await supabase
-    .from("profiles")
-    .update({
-      // Store in metadata or a dedicated column
-      // For MVP, we log it — a proper push_tokens table should be added
-    })
-    .eq("id", userId);
+  const platform = Platform.OS === "ios" ? "ios" : "android";
 
-  console.log("Push token for user", userId, ":", token);
+  const { error } = await supabase.from("push_tokens").upsert(
+    {
+      user_id: userId,
+      token,
+      platform,
+    },
+    { onConflict: "token" }
+  );
+
+  if (error) {
+    console.error("Failed to save push token:", error);
+  }
 }
 
 export async function scheduleWeighInReminder() {
