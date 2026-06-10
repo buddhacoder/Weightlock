@@ -76,7 +76,12 @@ export async function createContract(input: CreateContractInput) {
   }
 
   if (milestones.length > 0) {
-    await supabase.from("milestones").insert(milestones);
+    const { error: milestonesError } = await supabase
+      .from("milestones")
+      .insert(milestones);
+    if (milestonesError) {
+      return { error: milestonesError.message };
+    }
   }
 
   // Create invite for referee
