@@ -2,19 +2,15 @@
   "crons": [
     {
       "path": "/api/cron/weekly-evaluation",
-      "schedule": "0 6 * * 1"
+      "schedule": "0 6 * * *"
     },
     {
       "path": "/api/cron/milestone-detection",
-      "schedule": "0 */4 * * *"
+      "schedule": "0 6 * * *"
     },
     {
       "path": "/api/cron/completion-check",
-      "schedule": "0 */4 * * *"
-    },
-    {
-      "path": "/api/cron/process-payouts",
-      "schedule": "0 0 * * *"
+      "schedule": "0 6 * * *"
     }
   ],
   "headers": [
