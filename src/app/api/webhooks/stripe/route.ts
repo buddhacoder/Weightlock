@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
               })
               .eq("id", contractId);
 
-            await supabase.from("ledger_entries").insert({
+            const { error: ledgerError } = await supabase.from("ledger_entries").insert({
               contract_id: contractId,
               user_id: contract.participant_id,
               entry_type: "deposit",
@@ -53,6 +53,10 @@ export async function POST(request: NextRequest) {
                 stripe_payment_intent: session.payment_intent,
               },
             });
+            // Unique violation means already processed — not an error
+            if (ledgerError && !ledgerError.code?.startsWith("23505")) {
+              console.error("Deposit ledger insert failed:", ledgerError);
+            }
           }
         }
         break;
