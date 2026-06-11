@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 export async function getInviteByToken(token: string) {
@@ -23,8 +23,12 @@ export async function acceptInvite(token: string) {
 
   if (!user) return { error: "Not authenticated" };
 
-  // Get invite
-  const { data: invite } = await supabase
+  // Use service client for writes — RLS doesn't grant referees UPDATE
+  // on contract_invites or contracts. The token + expiry + null-referee
+  // guards are the security boundary.
+  const serviceClient = await createServiceClient();
+
+  const { data: invite } = await serviceClient
     .from("contract_invites")
     .select("*")
     .eq("token", token)
@@ -33,33 +37,31 @@ export async function acceptInvite(token: string) {
 
   if (!invite) return { error: "Invite not found or expired" };
 
-  // Check expiration
   if (new Date(invite.expires_at) < new Date()) {
-    await supabase
+    await serviceClient
       .from("contract_invites")
       .update({ status: "expired" })
       .eq("id", invite.id);
     return { error: "Invite has expired" };
   }
 
-  // Update invite status
-  const { error: inviteError } = await supabase
+  const { error: inviteError } = await serviceClient
     .from("contract_invites")
     .update({ status: "accepted" })
     .eq("id", invite.id);
 
   if (inviteError) return { error: inviteError.message };
 
-  // Assign referee to contract
-  const { error: contractError } = await supabase
+  // Only assign referee if slot is still open
+  const { error: contractError, count } = await serviceClient
     .from("contracts")
     .update({ referee_id: user.id })
-    .eq("id", invite.contract_id);
+    .eq("id", invite.contract_id)
+    .is("referee_id", null);
 
   if (contractError) return { error: contractError.message };
 
-  // Update profile role_preference if not set
-  await supabase
+  await serviceClient
     .from("profiles")
     .update({ role_preference: "referee" })
     .eq("id", user.id)
