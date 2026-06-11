@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { submitWeighIn, uploadWeighInPhoto } from "@/lib/actions/weigh-ins";
-import { Scale, Camera, ArrowLeft, X, Upload } from "lucide-react";
+import { submitWeighIn } from "@/lib/actions/weigh-ins";
+import { createClient } from "@/lib/supabase/client";
+import { Scale, Camera, ArrowLeft, X } from "lucide-react";
 import Link from "next/link";
 
 export default function WeighInPage() {
@@ -52,15 +53,24 @@ export default function WeighInPage() {
 
     let photoPath: string | undefined;
 
-    // Upload photo first if one was selected
     if (photo) {
-      const uploadResult = await uploadWeighInPhoto(contractId, photo);
-      if (uploadResult.error) {
-        setError(`Photo upload failed: ${uploadResult.error}`);
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError("Not authenticated");
         setLoading(false);
         return;
       }
-      photoPath = uploadResult.path;
+      const fileName = `${user.id}/${contractId}/${Date.now()}-${photo.name}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("weighin-photos")
+        .upload(fileName, photo, { cacheControl: "3600", upsert: false });
+      if (uploadError) {
+        setError(`Photo upload failed: ${uploadError.message}`);
+        setLoading(false);
+        return;
+      }
+      photoPath = uploadData.path;
     }
 
     const result = await submitWeighIn({
