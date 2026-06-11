@@ -64,19 +64,19 @@ export async function submitWeighIn(input: {
       .single();
 
     if (refereeProfile) {
-      await sendNotification(refereeProfile.email, "weighin_awaiting_verification", {
+      const emailResult = await sendNotification(refereeProfile.email, "weighin_awaiting_verification", {
         participantName: participantProfile?.full_name || user.email,
         weight: parsed.data.weight_lbs,
         contractId: contract.id,
-      }).catch(console.error);
+      }).catch(() => ({ success: false }));
 
       await supabase.from("notifications").insert({
         user_id: contract.referee_id,
         contract_id: contract.id,
         type: "weighin_awaiting_verification",
         payload: { weigh_in_id: weighIn.id, weight: parsed.data.weight_lbs },
-        status: "sent",
-        sent_at: new Date().toISOString(),
+        status: emailResult.success ? "sent" : "failed",
+        sent_at: emailResult.success ? new Date().toISOString() : null,
       });
     }
   }
@@ -161,19 +161,19 @@ export async function verifyWeighIn(input: {
 
   if (participantProfile) {
     const notifType = parsed.data.status === "approved" ? "weighin_approved" : "weighin_rejected";
-    await sendNotification(participantProfile.email, notifType as "weighin_approved" | "weighin_rejected", {
+    const emailResult = await sendNotification(participantProfile.email, notifType as "weighin_approved" | "weighin_rejected", {
       weight: weighIn.weight_lbs,
       contractId: contract.id,
       reason: parsed.data.rejection_reason,
-    }).catch(console.error);
+    }).catch(() => ({ success: false }));
 
     await supabase.from("notifications").insert({
       user_id: contract.participant_id,
       contract_id: contract.id,
       type: notifType,
       payload: { weigh_in_id: weighIn.id },
-      status: "sent",
-      sent_at: new Date().toISOString(),
+      status: emailResult.success ? "sent" : "failed",
+      sent_at: emailResult.success ? new Date().toISOString() : null,
     });
   }
 

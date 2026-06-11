@@ -104,21 +104,19 @@ export async function createContract(input: CreateContractInput) {
       .eq("id", user.id)
       .single();
 
-    // Send invitation email
-    await sendNotification(data.referee_email, "referee_invited", {
+    const emailResult = await sendNotification(data.referee_email, "referee_invited", {
       participantName: profile?.full_name || user.email,
       inviteToken: invite.token,
       contractId: contract.id,
-    }).catch(console.error);
+    }).catch(() => ({ success: false }));
 
-    // Record notification
     await supabase.from("notifications").insert({
       user_id: user.id,
       contract_id: contract.id,
       type: "referee_invited",
       payload: { referee_email: data.referee_email },
-      status: "sent",
-      sent_at: new Date().toISOString(),
+      status: emailResult.success ? "sent" : "failed",
+      sent_at: emailResult.success ? new Date().toISOString() : null,
     });
   }
 

@@ -143,5 +143,27 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ processed: results.length, results });
+  // Ledger reconciliation check
+  const drift: Array<{ contractId: string; details: string }> = [];
+  for (const rawContract of contracts) {
+    const contract = rawContract as Contract;
+    const { data: ledger } = await supabase
+      .from("ledger_entries")
+      .select("*")
+      .eq("contract_id", contract.id);
+    const pools = computePoolBalances(contract, (ledger || []) as LedgerEntry[]);
+    if (
+      pools.weekly_pool.remaining < 0 ||
+      pools.milestone_pool.remaining < 0 ||
+      pools.penalty_pool.remaining < 0 ||
+      pools.completion_pool.remaining < 0 ||
+      pools.total_released > pools.total_deposited
+    ) {
+      const details = `released=${pools.total_released} deposited=${pools.total_deposited} weekly_remaining=${pools.weekly_pool.remaining} penalty_remaining=${pools.penalty_pool.remaining}`;
+      console.error("LEDGER_DRIFT", contract.id, details);
+      drift.push({ contractId: contract.id, details });
+    }
+  }
+
+  return NextResponse.json({ processed: results.length, results, drift });
 }
