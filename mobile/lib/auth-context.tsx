@@ -8,6 +8,7 @@ interface AuthState {
   user: User | null;
   loading: boolean;
   signIn: (email: string) => Promise<{ error?: string }>;
+  verifyCode: (email: string, code: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
 }
 
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthState>({
   user: null,
   loading: true,
   signIn: async () => ({}),
+  verifyCode: async () => ({}),
   signOut: async () => {},
 });
 
@@ -56,6 +58,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return {};
   };
 
+  const verifyCode = async (email: string, code: string) => {
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token: code,
+      type: "email",
+    });
+    if (error) return { error: error.message };
+    return {};
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
@@ -67,6 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user: session?.user ?? null,
         loading,
         signIn,
+        verifyCode,
         signOut,
       }}
     >
