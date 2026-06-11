@@ -142,6 +142,16 @@ describe("getContractWeekBounds", () => {
     expect(weekStart.toISOString().slice(0, 10)).toBe("2025-01-13");
     expect(weekEnd.toISOString().slice(0, 10)).toBe("2025-01-19");
   });
+
+  it("uses EDT offset (UTC-4) for June dates in America/New_York", () => {
+    const startDate = new Date("2025-06-02");
+    const { weekStart, weekEnd } = getContractWeekBounds(startDate, 1, "America/New_York");
+
+    // Midnight EDT = 04:00 UTC (not 05:00 EST)
+    expect(weekStart.getUTCHours()).toBe(4);
+    // 23:59 EDT = 03:59 UTC next day
+    expect(weekEnd.getUTCHours()).toBe(3);
+  });
 });
 
 describe("getCurrentWeekNumber", () => {
